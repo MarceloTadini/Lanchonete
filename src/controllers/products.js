@@ -36,7 +36,7 @@ async function removeProducts(req, res) {
 
     let message = 'success'
 
-    if(!remove.ok){
+    if(remove.deletedCount===0){
         message = 'error'
     }
     

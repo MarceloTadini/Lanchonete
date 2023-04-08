@@ -6,6 +6,27 @@ const routes = require('./routes/routes')
 
 const app = express()
 
+//habilita CORS para determinados endereços
+const allowedOrigins = [
+    'http://127.0.0.1:5500',
+    'http://www.app.com.br',
+]
+
+app.use(cors({
+    origin: function (origin, callback) {
+        let allowed = true
+
+        //mobile app(vem sem origin pois é um aplicativo)
+        if(!origin) allowed = true
+
+        if(!allowedOrigins.includes(origin)) allowed = false
+
+        callback(null, allowed)
+    }
+}))
+
+
+
 //conexão com o banco de dados
 db.connect()
 

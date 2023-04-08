@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pedidos - Lanchonete</title>
+    <style>
+        .hidden{
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Listagem de Pedidos</h1>
+
+    <ul id="orders-list">
+
+    </ul>
+
+    <hr>
+
+    <div class="hidden" id="edit">
+        <h2>Alterar Status</h2>
+
+        <form id="formEdit">
+            <div>
+                <label>Cliente</label>
+                <input type="text" name="codigoCliente" disabled>
+                <label>Produto</label>
+                <input type="text" name="codigoProduto" disabled>
+                <label>Data</label>
+                <input type="text" name="data" disabled>
+                <label>Status</label>
+                <input type="text" name="status">
+            </div>
+            <div>
+                <button type="submit">Alterar</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+
+        const API_URL_PEDIDOS = 'http://localhost:8080/api/orders'
+
+        const ordersList = document.querySelector('#orders-list')
+        const edit = document.querySelector('#edit')
+        const formEdit = document.querySelector('#formEdit')
+
+        
+        //Adiciona evento de click no botão editar
+        function addEventoBotaoEditar() {
+            const botoesEditar = document.querySelectorAll('.botao-editar')
+
+            botoesEditar.forEach(botao => {
+                botao.onclick = function (e) {
+                    e.preventDefault()
+                    
+                    edit.classList.remove('hidden')
+
+                    const id = this.dataset.id
+                    const codigoCliente = this.dataset.codigoCliente
+                    const codigoProduto = this.dataset.codigoProduto
+                    const data = this.dataset.data
+                    const status = this.dataset.status
+                    
+                    document.forms['formEdit'].id.value = id
+                    document.forms['formEdit'].codigoCliente.value = codigoCliente
+                    document.forms['formEdit'].codigoProduto.value = codigoProduto
+                    document.forms['formEdit'].data.value = data
+                    document.forms['formEdit'].status.value = status
+                }
+            })
+        }
+
+        //Obtem a lista de produtos e insere no html
+        function obterLista() {
+            fetch(API_URL_PEDIDOS).then(response => {
+                response.json().then(data => {
+                    const pedidosHtml = data.map(order => `
+                    <li>
+                        ${order.codigoCliente} - ${order.codigoProduto} - ${order.data} - ${order.status}
+                        <a href="#" class="botao-editar" data-status="${order.status}"> [editar] </a>
+                    </li>
+                `).join('')
+
+                    ordersList.innerHTML = pedidosHtml
+                    addEventoBotaoEditar()
+                })
+            })
+        }
+        obterLista()
+
+
+
+        //Ao editar um produto
+        formEdit.onsubmit = function (e) {
+            e.preventDefault()
+
+            const id = document.forms['formEdit'].id.value 
+            const codigoCliente = document.forms['formEdit'].codigoCliente.value 
+            const codigoProduto= document.forms['formEdit'].codigoProduto.value 
+            const data = document.forms['formEdit'].data.value 
+            const status = document.forms['formEdit'].status.value
+
+            fetch(`${API_URL_PEDIDOS}/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    codigoCliente,
+                    codigoProduto,
+                    data,
+                    status
+                })
+            }).then(response => {
+                response.json().then(data => {
+                    if (data.message === 'success') {
+                        formEdit.reset()
+                        edit.classList.add('hidden')
+                        obterLista()
+                        alert('Produto alterado com sucesso!')
+                    } else {
+                        alert('Erro ao editar, tente novamente!')
+                    }
+                })
+            })
+        }
+    </script>
+
+</body>
+
+</html>
